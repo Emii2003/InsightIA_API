@@ -35,7 +35,7 @@ class Scraping:
             self.navegador.quit()
             return {"status_code": 404, "mensagem": f"URL não encontrada: {self.url}"}
         try:
-            self.navegador.get(self.url)
+            # self.navegador.get(self.url)
             return {"status_code": 200, "mensagem": f"URL encontrada: {self.url}"}
 
         except Exception as e:
@@ -44,10 +44,10 @@ class Scraping:
 
     def verificar_url(self):
         try:
-            self.navegador.get(self.url)
+            # self.navegador.get(self.url)
             sleep(1)  # Adicionar um tempo de espera para garantir que a página seja carregada completamente
-            if "404" in self.navegador.current_url:
-                return False
+            # if "404" in self.navegador.current_url:
+            #     return False
             return True
         except Exception as e:
             print(f"Erro ao verificar a URL: {e}")
@@ -97,11 +97,12 @@ class Scraping:
     async def iniciar(self):
         status = {}
         status = await self.acessar_web()
-        if status["status_code"] != 200:
-            return status, []
-        total_pages = self.obter_numero_total_de_paginas()
-        if self.max_page and self.max_page < total_pages:
-            total_pages = self.max_page
+        # if status["status_code"] != 200:
+        #     return status, []
+        # total_pages = self.obter_numero_total_de_paginas()
+        # if self.max_page and self.max_page < total_pages:
+        #     total_pages = self.max_page
+        total_pages = 1
         status, self.dados = await self.scraping(total_pages)
         self.navegador.quit()
         return status, self.dados
