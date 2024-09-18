@@ -1,6 +1,7 @@
 import re
 import csv
 import asyncio
+import pandas as pd
 from time import sleep
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -116,13 +117,15 @@ class Scraping:
         total_problemas = 0
         result = {}
         reclamacoes_por_categoria = {}
+        setor_empresa = None
 
         while page_number <= total_pages:
+            print(page_number)
             self.navegador.get(f"{self.url}?pagina={page_number}")
             self.site = BeautifulSoup(self.navegador.page_source, "html.parser")
             
             setor_empresa = self.site.find('a', id='info_segmento_hero').get_text(strip=True)
-            print(self.site.find('a', id='info_segmento_hero'))
+            
             reclamacoes = self.site.find_all("div", class_="sc-1pe7b5t-0 eJgBOc")
 
             for reclamacao in reclamacoes:
@@ -150,7 +153,7 @@ class Scraping:
                 total_problemas += 1
             page_number += 1
 
-        result["setor"] = total_problemas
+        result["ramo"] = setor_empresa
         result["total_reclamacoes"] = total_problemas
         result["dados"] = [
             {
