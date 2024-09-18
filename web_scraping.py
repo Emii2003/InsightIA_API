@@ -24,7 +24,7 @@ class Scraping:
 
     async def acessar_web(self):
         web_options = Options()
-        # web_options.add_argument("--headless")
+        web_options.add_argument("--headless")
         web_options.add_argument("--disable-gpu")
         web_options.add_argument("--no-sandbox")
         web_options.add_argument("--disable-dev-shm-usage")
