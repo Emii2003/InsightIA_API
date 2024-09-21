@@ -35,7 +35,7 @@ class Scraping:
             self.navegador.quit()
             return {"status_code": 404, "mensagem": f"URL não encontrada: {self.url}"}
         try:
-            # self.navegador.get(self.url)
+            self.navegador.get(self.url)
             return {"status_code": 200, "mensagem": f"URL encontrada: {self.url}"}
 
         except Exception as e:
@@ -44,10 +44,10 @@ class Scraping:
 
     def verificar_url(self):
         try:
-            # self.navegador.get(self.url)
+            self.navegador.get(self.url)
             sleep(1)  # Adicionar um tempo de espera para garantir que a página seja carregada completamente
-            # if "404" in self.navegador.current_url:
-            #     return False
+            if "404" in self.navegador.current_url:
+                return False
             return True
         except Exception as e:
             print(f"Erro ao verificar a URL: {e}")
@@ -69,6 +69,7 @@ class Scraping:
         page_number = 1
         dados = []
         while page_number <= total_pages:
+            self.navegador = webdriver.Chrome()
             self.navegador.get(f'{self.url}?pagina={page_number}')
             self.site = BeautifulSoup(self.navegador.page_source, 'html.parser')
             reclamacoes = self.site.find_all('div', class_='sc-1pe7b5t-0 eJgBOc')
@@ -80,10 +81,10 @@ class Scraping:
                 status = next((reclamacao.find('span', class_=cls).get_text() for cls in ['sc-1pe7b5t-4 jKvVbt', 'sc-1pe7b5t-4 cZrVnt', 'sc-1pe7b5t-4 ihkTSQ'] if reclamacao.find('span', class_=cls)), 'Status não encontrado')
                 tempo = reclamacao.find('span', class_='sc-1pe7b5t-5 dspDoZ').get_text() if reclamacao.find('span', class_='sc-1pe7b5t-5 dspDoZ') else 'Tempo não encontrado'
 
-                dados.append({
+                self.dados.append({
                     "empresa": self.empresa,
                     "apelido": self.apelido,
-                    "data-operacao" : datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "data-operacao": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     "titulo": titulo,
                     "link": f"https://www.reclameaqui.com.br{link}",
                     "descricao": descricao,
@@ -92,17 +93,16 @@ class Scraping:
                 })
 
             page_number += 1
-        return {"status_code": 200, "mensagem": f"Web Scraping Concluido com sucesso!"}, dados
+        return {"status_code": 200, "mensagem": f"Web Scraping Concluido com sucesso!"}, self.dados
 
     async def iniciar(self):
         status = {}
         status = await self.acessar_web()
-        # if status["status_code"] != 200:
-        #     return status, []
-        # total_pages = self.obter_numero_total_de_paginas()
-        # if self.max_page and self.max_page < total_pages:
-        #     total_pages = self.max_page
-        total_pages = 1
+        if status["status_code"] != 200:
+            return status, []
+        total_pages = self.obter_numero_total_de_paginas()
+        if self.max_page and self.max_page < total_pages:
+            total_pages = self.max_page
         status, self.dados = await self.scraping(total_pages)
         self.navegador.quit()
         return status, self.dados

@@ -44,13 +44,14 @@ async def save_db(dados):
 
 async def buscar_doc_por_empresa_apelido(db, nome):
     # Primeiro tenta buscar por 'empresa'
-    dados = {doc.to_dict() for doc in db.collection("reclamacoes").where('empresa', '==', nome).stream() if doc.to_dict().get("empresa")}
+    dados = [doc.to_dict() for doc in db.collection("reclamacoes").where('empresa', '==', nome).stream() if doc.to_dict().get("empresa")]
 
     # Se não encontrar, tenta buscar por 'apelido'
     if not dados:
-        dados = {doc.to_dict() for doc in db.collection("reclamacoes").where('apelido', '==', nome).stream() if doc.to_dict().get("apelido")}
+        dados = [doc.to_dict() for doc in db.collection("reclamacoes").where('apelido', '==', nome).stream() if doc.to_dict().get("apelido")]
 
-    return dados
+    return dados 
+
 
 @app.get("/")
 async def hello_world():
@@ -65,6 +66,7 @@ async def web_scraping(empresa: str, apelido: str = Query(None, description="Ape
         dados = await buscar_doc_por_empresa_apelido(db, empresa)
         if dados:
             await apagar_reclamacoes_por_empresa(empresa)
+
             
         status, dados = await scraper.iniciar()
         if status['status_code'] == 200:
