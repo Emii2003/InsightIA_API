@@ -12,6 +12,6 @@
     "restartPolicyMaxRetries": 10
   },
   "env": {
-    "RAILWAY_DOCKERFILE_PATH": "dockerfile" 
+    "RAILWAY_DOCKERFILE_PATH": "Dockerfile" 
   }
 }
