@@ -69,7 +69,13 @@ class Scraping:
         page_number = 1
         dados = []
         while page_number <= total_pages:
-            self.navegador = webdriver.Chrome()
+            web_options = Options()
+            web_options.add_argument("--headless")
+            web_options.add_argument("--disable-gpu")
+            web_options.add_argument("--no-sandbox")
+            web_options.add_argument("--disable-dev-shm-usage")
+            
+            self.navegador = webdriver.Chrome(options=web_options)
             self.navegador.get(f'{self.url}?pagina={page_number}')
             self.site = BeautifulSoup(self.navegador.page_source, 'html.parser')
             reclamacoes = self.site.find_all('div', class_='sc-1pe7b5t-0 eJgBOc')
