@@ -4,7 +4,7 @@ from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from web_scraping import Scraping
 from database import iniciar_conexao   
-from gemini import configurar_modelo, gerar_analise, gerar_analise_complexa, conversa_gemini
+from gemini import configurar_modelo, gerar_analise, gerar_analise_complexa, conversa_gemini, gerar_grafico_pizza, gerar_analise_concorrencia
 from collections import defaultdict
 
 app = FastAPI(
@@ -124,6 +124,9 @@ async def consultar_reclamacoes(empresa: str, max_reclamacao: int = Query(None, 
     empresa = empresa.replace(' ', '-')
     try:
         collection_ref = db.collection("reclamacoes").where('empresa', '==', empresa)
+        if not collection_ref:
+            collection_ref = db.collection("apelido").where('apelido', '==', empresa)
+
         if max_reclamacao:
             collection_ref = collection_ref.limit(max_reclamacao)
         
@@ -165,7 +168,7 @@ async def apagar_todas_reclamacoes():
 
 @app.post("/gemini/{empresa}")
 async def analise_gemini(empresa : str):
-    dados = [doc.to_dict() for doc in db.collection("reclamacoes").where('empresa', '==', empresa).stream()]
+    dados = await buscar_doc_por_empresa_apelido(db, empresa)
     try:
         return {"status_code": 200, "mensagem": f"{gerar_analise(model, dados)}"}
     
@@ -174,9 +177,28 @@ async def analise_gemini(empresa : str):
 
 @app.post("/gemini/complexa/{empresa}")
 async def analise_gemini_complexa(empresa : str):
-    dados = [doc.to_dict() for doc in db.collection("reclamacoes").where('empresa', '==', empresa).stream()]
+    dados = await buscar_doc_por_empresa_apelido(db, empresa)
     try:
         return {"status_code": 200, "mensagem": gerar_analise_complexa(model, dados)}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro inesperado: {str(e)}")
+
+@app.post("/gemini/pizza/{empresa}")
+async def analise_gemini_pizza(empresa : str):
+    dados = await buscar_doc_por_empresa_apelido(db, empresa)
+    try:
+        return {"status_code": 200, "mensagem": gerar_grafico_pizza(model, dados)}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro inesperado: {str(e)}")
+
+@app.post("/gemini/concorrencia/{empresa}/{concorrente}")
+async def analise_gemini_concorrencia(empresa : str, concorrente : str):
+    dados = await buscar_doc_por_empresa_apelido(db, empresa)
+    dados_concorrente = await buscar_doc_por_empresa_apelido(db, concorrente)
+    try:
+        return {"status_code": 200, "mensagem": gerar_analise_concorrencia(model, dados, dados_concorrente)}
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro inesperado: {str(e)}")
